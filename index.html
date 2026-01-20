@@ -68,6 +68,30 @@
         const { motion, AnimatePresence, useScroll, useTransform, useSpring } = Motion;
         const lucideIcons = window.lucide;
 
+        // 文字列操作ヘルパー: kebab-case -> PascalCase
+        const toPascalCase = (str) =>
+            str.replace(/(^\w|-\w)/g, (clear) => clear.replace('-', '').toUpperCase());
+
+        // --- 子コンポーネント: IconWrapper ---
+        // ReactとLucideのDOM競合を防ぐため、SVG文字列を生成して埋め込む安全なコンポーネント
+        const Icon = ({ name, size = 24, className = "" }) => {
+            const [svgHtml, setSvgHtml] = useState(null);
+
+            useEffect(() => {
+                if (window.lucide && window.lucide.icons) {
+                    const iconName = toPascalCase(name);
+                    const iconData = window.lucide.icons[iconName];
+                    if (iconData) {
+                        setSvgHtml(iconData.toSvg({ class: className, width: size, height: size }));
+                    }
+                }
+            }, [name, size, className]);
+
+            if (!svgHtml) return <span className={`inline-block w-[${size}px] h-[${size}px]`} />;
+
+            return <span className="inline-flex items-center justify-center" dangerouslySetInnerHTML={{ __html: svgHtml }} />;
+        };
+
         // --- 子コンポーネント: 流れるテキスト ---
         const ScrollingText = ({ children, baseVelocity = 100, className = "" }) => {
             const { scrollYProgress } = useScroll();
@@ -124,7 +148,7 @@
                         <div className="flex justify-between items-start mb-4">
                             <h3 className="text-xl font-bold group-hover:text-[#c29a5b] transition-colors tracking-tight text-[#131110]">{title}</h3>
                             <div className="p-2 rounded-full bg-neutral-100 group-hover:bg-[#c29a5b] group-hover:text-white transition-colors">
-                                <i data-lucide="external-link" className="w-4 h-4"></i>
+                                <Icon name="external-link" size={16} />
                             </div>
                         </div>
                         <p className="text-neutral-600 leading-relaxed mb-6 font-medium text-sm md:text-base">
@@ -132,7 +156,7 @@
                         </p>
                         <div className="flex items-center gap-2 text-xs font-mono text-neutral-400 group-hover:text-[#c29a5b] transition-colors font-bold">
                             <span>EXPLORE PROJECT</span>
-                            <i data-lucide="chevron-right" className="w-3 h-3"></i>
+                            <Icon name="chevron-right" size={12} />
                         </div>
                     </a>
                 </motion.div>
@@ -189,7 +213,7 @@
                         className="p-12 text-center bg-white/60 backdrop-blur-xl rounded-[3rem] border border-[#c29a5b]/20"
                     >
                         <div className="w-20 h-20 bg-[#c29a5b] rounded-full flex items-center justify-center mx-auto mb-6">
-                            <i data-lucide="check" className="text-white w-10 h-10"></i>
+                            <Icon name="check" size={40} className="text-white" />
                         </div>
                         <h3 className="text-2xl font-bold text-[#131110] mb-4">Message Sent!</h3>
                         <p className="text-neutral-600">お問い合わせありがとうございます。<br />確認次第、ご連絡させていただきます。</p>
@@ -211,7 +235,7 @@
                         className="p-12 text-center bg-white/60 backdrop-blur-xl rounded-[3rem] border border-red-500/20"
                     >
                         <div className="w-20 h-20 bg-red-400 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <i data-lucide="alert-circle" className="text-white w-10 h-10"></i>
+                            <Icon name="alert-circle" size={40} className="text-white" />
                         </div>
                         <h3 className="text-2xl font-bold text-[#131110] mb-4">Submission Failed</h3>
                         <p className="text-neutral-600">送信に失敗しました。<br />Formspree IDが正しく設定されていない可能性があります。</p>
@@ -278,7 +302,7 @@
                                 </>
                             ) : (
                                 <>
-                                    <i data-lucide="send" className="w-5 h-5 group-hover:translate-x-1 transition-transform"></i>
+                                    <Icon name="send" size={20} className="group-hover:translate-x-1 transition-transform" />
                                     <span>SEND MESSAGE</span>
                                 </>
                             )}
@@ -300,13 +324,6 @@
             const heroOpacity = useTransform(scrollYProgress, [0, 0.4], [1, 0]);
             const smoothBgY = useSpring(bgY, { stiffness: 50, damping: 20 });
 
-            // Lucideアイコンの初期化
-            useEffect(() => {
-                if (lucideIcons) {
-                    lucideIcons.createIcons();
-                }
-            }, [isMenuOpen]);
-
             const scrollTo = (id) => {
                 const target = document.getElementById(id);
                 if (target) {
@@ -327,8 +344,8 @@
                     {/* ナビゲーションバー */}
                     <nav className="fixed top-0 left-0 w-full z-50 flex justify-end items-center p-6 md:p-8">
                         <button onClick={() => setIsMenuOpen(!isMenuOpen)}
-                            className="p-3 bg-white/80 backdrop-blur-md border border-neutral-200 rounded-full shadow-xl hover:scale-110 transition-transform">
-                            {isMenuOpen ? <i data-lucide="x" className="text-[#c29a5b]"></i> : <i data-lucide="menu" className="text-[#c29a5b]"></i>}
+                            className="p-3 bg-white/80 backdrop-blur-md border border-neutral-200 rounded-full shadow-xl hover:scale-110 transition-transform text-[#c29a5b]">
+                            {isMenuOpen ? <Icon name="x" /> : <Icon name="menu" />}
                         </button>
                     </nav>
 
