@@ -148,11 +148,33 @@
                 e.preventDefault();
                 setStatus('submitting');
 
-                // 送信処理のシミュレーション (2秒待機)
-                setTimeout(() => {
-                    setStatus('success');
-                    setFormState({ name: '', email: '', message: '' });
-                }, 2000);
+                // Formspreeへの送信処理
+                // 注意: 'YOUR_FORM_ID' をあなたのFormspree Form IDに書き換えてください
+                // https://formspree.io/ で無料で取得できます
+                const FORMSPREE_ENDPOINT = "https://formspree.io/f/YOUR_FORM_ID";
+
+                try {
+                    const response = await fetch(FORMSPREE_ENDPOINT, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(formState)
+                    });
+
+                    if (response.ok) {
+                        setStatus('success');
+                        setFormState({ name: '', email: '', message: '' });
+                    } else {
+                        throw new Error('Form submission failed');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    setStatus('error');
+                    // エラー時もユーザー体験のため一旦成功表示にするか、アラートを出すか。
+                    // ここでは明確にエラーを表示せず、Formspreeの設定待ちであることを考慮し
+                    // "エラーが発生しました（設定を確認してください）"を表示するロジックへ
+                }
             };
 
             const handleChange = (e) => {
@@ -176,6 +198,28 @@
                             className="mt-8 text-[#c29a5b] font-bold hover:underline"
                         >
                             新しいメッセージを送る
+                        </button>
+                    </motion.div>
+                );
+            }
+
+            if (status === 'error') {
+                return (
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="p-12 text-center bg-white/60 backdrop-blur-xl rounded-[3rem] border border-red-500/20"
+                    >
+                        <div className="w-20 h-20 bg-red-400 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <i data-lucide="alert-circle" className="text-white w-10 h-10"></i>
+                        </div>
+                        <h3 className="text-2xl font-bold text-[#131110] mb-4">Submission Failed</h3>
+                        <p className="text-neutral-600">送信に失敗しました。<br />Formspree IDが正しく設定されていない可能性があります。</p>
+                        <button
+                            onClick={() => setStatus('idle')}
+                            className="mt-8 text-[#c29a5b] font-bold hover:underline"
+                        >
+                            もう一度試す
                         </button>
                     </motion.div>
                 );
