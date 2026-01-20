@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>mono0110 | Portfolio</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React & ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Framer Motion -->
+    <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap');
+
+        :root {
+            --bg-bright: #fdfbf7;
+            /* 明るいベージュ */
+            --accent-gold: #c29a5b;
+            --text-dark: #131110;
+            --card-bg: rgba(255, 255, 255, 0.6);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            background-color: var(--bg-bright);
+            color: var(--text-dark);
+            overflow-x: hidden;
+        }
+
+        /* カスタムスクロールバー */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-bright);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-gold);
+            border-radius: 10px;
+        }
+
+        .selection-gold::selection {
+            background-color: var(--accent-gold);
+            color: white;
+        }
+    </style>
+</head>
+
+<body class="selection-gold">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useRef, useEffect } = React;
+
+        // ライブラリのグローバル参照
+        const Motion = window.Motion || window.framerMotion;
+        const { motion, AnimatePresence, useScroll, useTransform, useSpring } = Motion;
+        const lucideIcons = window.lucide;
+
+        // --- 子コンポーネント: 流れるテキスト ---
+        const ScrollingText = ({ children, baseVelocity = 100, className = "" }) => {
+            const { scrollYProgress } = useScroll();
+            const x = useTransform(scrollYProgress, [0, 1], [0, baseVelocity]);
+            const smoothX = useSpring(x, { stiffness: 60, damping: 20 });
+
+            return (
+                <div className={`overflow-hidden whitespace-nowrap flex ${className}`}>
+                    <motion.div style={{ x: smoothX }} className="flex">
+                        <span className="block mr-16">{children}</span>
+                        <span className="block mr-16">{children}</span>
+                        <span className="block mr-16">{children}</span>
+                    </motion.div>
+                </div>
+            );
+        };
+
+        // --- 子コンポーネント: セクションタイトル ---
+        const SectionTitle = ({ children, subtitle, align = "left" }) => (
+            <div className={`mb-10 ${align === 'center' ? 'text-center' : 'text-left'}`}>
+                {subtitle && (
+                    <motion.p
+                        initial={{ x: -50, opacity: 0 }}
+                        whileInView={{ x: 0, opacity: 1 }}
+                        transition={{ duration: 0.6, ease: "easeOut" }}
+                        viewport={{ once: true, margin: "-10%" }}
+                        className="text-[10px] font-mono tracking-[0.3em] uppercase mb-2 text-[#c29a5b] font-bold"
+                    >
+                        {subtitle}
+                    </motion.p>
+                )}
+                <motion.h2
+                    initial={{ x: -100, opacity: 0 }}
+                    whileInView={{ x: 0, opacity: 1 }}
+                    transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+                    viewport={{ once: true, margin: "-10%" }}
+                    className="text-3xl md:text-5xl font-black italic tracking-tighter leading-none text-[#131110]"
+                >
+                    {children}
+                </motion.h2>
+            </div>
+        );
+
+        // --- 子コンポーネント: 制作実績カード ---
+        const WorkCard = ({ title, url, description }) => {
+            const ref = useRef(null);
+            const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
+            const y = useTransform(scrollYProgress, [0, 1], [40, -40]);
+
+            return (
+                <motion.div ref={ref} style={{ y }}>
+                    <a href={url} target="_blank" rel="noopener noreferrer"
+                        className="group block p-8 border border-neutral-200 bg-white/60 backdrop-blur-xl rounded-[2rem] transition-all hover:shadow-2xl hover:shadow-[#c29a5b]/20 hover:border-[#c29a5b]">
+                        <div className="flex justify-between items-start mb-4">
+                            <h3 className="text-xl font-bold group-hover:text-[#c29a5b] transition-colors tracking-tight text-[#131110]">{title}</h3>
+                            <div className="p-2 rounded-full bg-neutral-100 group-hover:bg-[#c29a5b] group-hover:text-white transition-colors">
+                                <i data-lucide="external-link" className="w-4 h-4"></i>
+                            </div>
+                        </div>
+                        <p className="text-neutral-600 leading-relaxed mb-6 font-medium text-sm md:text-base">
+                            {description}
+                        </p>
+                        <div className="flex items-center gap-2 text-xs font-mono text-neutral-400 group-hover:text-[#c29a5b] transition-colors font-bold">
+                            <span>EXPLORE PROJECT</span>
+                            <i data-lucide="chevron-right" className="w-3 h-3"></i>
+                        </div>
+                    </a>
+                </motion.div>
+            );
+        };
+
+        // --- 子コンポーネント: お問い合わせフォーム ---
+        const ContactForm = () => {
+            const [formState, setFormState] = useState({ name: '', email: '', message: '' });
+            const [status, setStatus] = useState('idle'); // idle, submitting, success, error
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                setStatus('submitting');
+
+                // 送信処理のシミュレーション (2秒待機)
+                setTimeout(() => {
+                    setStatus('success');
+                    setFormState({ name: '', email: '', message: '' });
+                }, 2000);
+            };
+
+            const handleChange = (e) => {
+                setFormState({ ...formState, [e.target.name]: e.target.value });
+            };
+
+            if (status === 'success') {
+                return (
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="p-12 text-center bg-white/60 backdrop-blur-xl rounded-[3rem] border border-[#c29a5b]/20"
+                    >
+                        <div className="w-20 h-20 bg-[#c29a5b] rounded-full flex items-center justify-center mx-auto mb-6">
+                            <i data-lucide="check" className="text-white w-10 h-10"></i>
+                        </div>
+                        <h3 className="text-2xl font-bold text-[#131110] mb-4">Message Sent!</h3>
+                        <p className="text-neutral-600">お問い合わせありがとうございます。<br />確認次第、ご連絡させていただきます。</p>
+                        <button
+                            onClick={() => setStatus('idle')}
+                            className="mt-8 text-[#c29a5b] font-bold hover:underline"
+                        >
+                            新しいメッセージを送る
+                        </button>
+                    </motion.div>
+                );
+            }
+
+            return (
+                <form onSubmit={handleSubmit} className="w-full max-w-2xl mx-auto space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-[#131110] ml-2">Name</label>
+                            <input
+                                type="text"
+                                name="name"
+                                required
+                                value={formState.name}
+                                onChange={handleChange}
+                                className="w-full px-6 py-4 bg-white/60 backdrop-blur border border-neutral-200 rounded-2xl focus:outline-none focus:border-[#c29a5b] focus:ring-2 focus:ring-[#c29a5b]/20 transition-all font-medium"
+                                placeholder="Your Name"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-[#131110] ml-2">Email</label>
+                            <input
+                                type="email"
+                                name="email"
+                                required
+                                value={formState.email}
+                                onChange={handleChange}
+                                className="w-full px-6 py-4 bg-white/60 backdrop-blur border border-neutral-200 rounded-2xl focus:outline-none focus:border-[#c29a5b] focus:ring-2 focus:ring-[#c29a5b]/20 transition-all font-medium"
+                                placeholder="hello@example.com"
+                            />
+                        </div>
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-sm font-bold text-[#131110] ml-2">Message</label>
+                        <textarea
+                            name="message"
+                            required
+                            rows="5"
+                            value={formState.message}
+                            onChange={handleChange}
+                            className="w-full px-6 py-4 bg-white/60 backdrop-blur border border-neutral-200 rounded-2xl focus:outline-none focus:border-[#c29a5b] focus:ring-2 focus:ring-[#c29a5b]/20 transition-all font-medium resize-none"
+                            placeholder="お問い合わせ内容をご記入ください..."
+                        ></textarea>
+                    </div>
+                    <div className="text-center pt-4">
+                        <button
+                            type="submit"
+                            disabled={status === 'submitting'}
+                            className="group relative inline-flex items-center gap-4 px-14 py-5 bg-[#131110] text-white rounded-full text-lg font-black italic shadow-xl hover:bg-[#c29a5b] hover:scale-105 transition-all disabled:opacity-70 disabled:hover:scale-100"
+                        >
+                            {status === 'submitting' ? (
+                                <>
+                                    <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                                    <span>SENDING...</span>
+                                </>
+                            ) : (
+                                <>
+                                    <i data-lucide="send" className="w-5 h-5 group-hover:translate-x-1 transition-transform"></i>
+                                    <span>SEND MESSAGE</span>
+                                </>
+                            )}
+                        </button>
+                    </div>
+                </form>
+            );
+        };
+
+        // --- メインアプリ ---
+        function App() {
+            const [isMenuOpen, setIsMenuOpen] = useState(false);
+            const { scrollYProgress } = useScroll();
+
+            // パララックス変位
+            const bgScale = useTransform(scrollYProgress, [0, 1], [1.5, 1]);
+            const bgY = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
+            const heroY = useTransform(scrollYProgress, [0, 0.5], [0, -500]);
+            const heroOpacity = useTransform(scrollYProgress, [0, 0.4], [1, 0]);
+            const smoothBgY = useSpring(bgY, { stiffness: 50, damping: 20 });
+
+            // Lucideアイコンの初期化
+            useEffect(() => {
+                if (lucideIcons) {
+                    lucideIcons.createIcons();
+                }
+            }, [isMenuOpen]);
+
+            const scrollTo = (id) => {
+                const target = document.getElementById(id);
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                    setIsMenuOpen(false);
+                }
+            };
+
+            return (
+                <div className="min-h-screen">
+                    {/* 背景レイヤー */}
+                    <motion.div style={{ y: smoothBgY, scale: bgScale }} className="fixed inset-0 z-0 pointer-events-none opacity-40">
+                        <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2064"
+                            className="w-full h-[110%] object-cover contrast-100 grayscale-[10%]" />
+                        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#fdfbf7]" />
+                    </motion.div>
+
+                    {/* ナビゲーションバー */}
+                    <nav className="fixed top-0 left-0 w-full z-50 flex justify-end items-center p-6 md:p-8">
+                        <button onClick={() => setIsMenuOpen(!isMenuOpen)}
+                            className="p-3 bg-white/80 backdrop-blur-md border border-neutral-200 rounded-full shadow-xl hover:scale-110 transition-transform">
+                            {isMenuOpen ? <i data-lucide="x" className="text-[#c29a5b]"></i> : <i data-lucide="menu" className="text-[#c29a5b]"></i>}
+                        </button>
+                    </nav>
+
+                    {/* メニューオーバーレイ */}
+                    <AnimatePresence>
+                        {isMenuOpen && (
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                                className="fixed inset-0 z-40 bg-white/98 backdrop-blur-2xl flex flex-col items-center justify-center text-[#131110]">
+                                {['Top', 'About', 'Works', 'Contact'].map((item) => (
+                                    <button key={item} onClick={() => scrollTo(item.toLowerCase())}
+                                        className="text-5xl md:text-7xl font-black italic tracking-tighter hover:text-[#c29a5b] transition-all mb-8">
+                                        {item}
+                                    </button>
+                                ))}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    {/* ヒーローセクション */}
+                    <section id="top" className="relative h-screen flex flex-col items-center justify-center p-6">
+                        <motion.div style={{ y: heroY, opacity: heroOpacity }} className="text-center z-20">
+                            <p className="text-[10px] font-mono tracking-[0.5em] uppercase mb-6 text-[#c29a5b] font-bold">Data Specialist & Developer</p>
+                            <h1 className="text-5xl md:text-8xl font-black italic tracking-tighter leading-[0.8] mb-8 text-[#131110]">mono's Portfolio</h1>
+                            <p className="text-base md:text-lg font-medium text-neutral-500">Transforming messy data into elegant systems.</p>
+                        </motion.div>
+                        <div className="absolute inset-0 pointer-events-none opacity-[0.08]">
+                            <ScrollingText baseVelocity={-80} className="absolute top-[22%] text-[4rem] md:text-[6rem] font-black italic text-[#c29a5b]">DATA-CLEANING EXCEL VBA AUTOMATION</ScrollingText>
+                            <ScrollingText baseVelocity={60} className="absolute bottom-[22%] text-[4rem] md:text-[6rem] font-black italic text-[#c29a5b]">FRONTEND SCHOOL-ADMIN DX SOLUTIONS</ScrollingText>
+                        </div>
+                    </section>
+
+                    {/* アバウトセクション */}
+                    <section id="about" className="relative py-48 px-6 max-w-6xl mx-auto z-10 text-left">
+                        <SectionTitle subtitle="Vision">About Me</SectionTitle>
+                        <div className="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-20 mb-24">
+                            <div className="md:col-span-4 text-center">
+                                <div className="aspect-[3/4] rounded-[2.5rem] overflow-hidden border-8 border-white shadow-2xl shadow-[#c29a5b]/10 bg-neutral-100 mb-6">
+                                    <img src="イケおじ風.png" alt="Profile" className="w-full h-full object-cover"
+                                        onError={(e) => { e.target.src = "images/mypic.png"; }} />
+                                </div>
+                                <h3 className="text-3xl font-black italic tracking-tighter text-[#131110]">mono</h3>
+                            </div>
+                            <div className="md:col-span-8 space-y-8">
+                                <h3 className="text-2xl md:text-4xl font-black italic tracking-tight text-[#131110] leading-tight">
+                                    エンジニアの視点で、<br />事務の「当たり前」をハックする。
+                                </h3>
+                                <div className="text-lg md:text-xl text-neutral-600 font-medium space-y-6">
+                                    <p>かつてフロントエンドエンジニアとして磨いたロジカルな思考を武器に、現在は学校事務というフィールドで校務DXを推進しています。</p>
+                                    <p>Excel（PowerQuery/VBA）を駆使したデータ成形や情報のクレンジング、業務自動化に特化した「テクニカル事務」という独自の立ち位置を確立しています。</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                            <div className="p-8 md:p-12 bg-white/60 backdrop-blur-2xl rounded-[3rem] border border-neutral-100 shadow-xl">
+                                <h3 className="text-[10px] font-mono uppercase text-[#c29a5b] mb-8 font-bold tracking-widest">Core Skills</h3>
+                                <ul className="space-y-5 font-black italic text-xl tracking-tight text-[#131110]">
+                                    {['Excel / VBA', 'Word', 'Google Opal', 'Google Antigravity'].map(s => <li key={s} className="flex items-center gap-4"><div className="w-2 h-2 bg-[#c29a5b] rounded-full" />{s}</li>)}
+                                </ul>
+                            </div>
+                            <div className="p-8 md:p-12 bg-white/60 backdrop-blur-2xl rounded-[3rem] border border-neutral-100 shadow-xl">
+                                <h3 className="text-[10px] font-mono uppercase text-[#c29a5b] mb-8 font-bold tracking-widest">Hobbies</h3>
+                                <ul className="space-y-5 font-black italic text-xl tracking-tight text-[#131110]">
+                                    {['Movie Appreciation', 'App Development'].map(h => <li key={h} className="flex items-center gap-4"><div className="w-2 h-2 bg-[#c29a5b] rounded-full" />{h}</li>)}
+                                </ul>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* 実績セクション */}
+                    <section id="works" className="relative py-48 px-6 z-10 bg-white/40 backdrop-blur-sm text-left">
+                        <div className="max-w-5xl mx-auto">
+                            <SectionTitle subtitle="Selected Projects">My Works</SectionTitle>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                                <WorkCard title="Quick Knowledge" url="https://ion0110.github.io/quickknowledge/" description="フロントエンドの知見と事務効率化のノウハウを統合したナレッジベース。" />
+                                <WorkCard title="Receipt Capture" url="https://ion0110.github.io/receipt_capture" description="OCRを活用した精算業務の効率化。領収書管理プロトタイプ。" />
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* コンタクトセクション */}
+                    <section id="contact" className="relative py-48 px-6 z-10 text-left">
+                        <div className="max-w-5xl mx-auto">
+                            <SectionTitle subtitle="Inquiry">Contact Us</SectionTitle>
+                            <div className="mt-12">
+                                <ContactForm />
+                            </div>
+                        </div>
+                    </section>
+
+                    <footer className="py-20 border-t border-neutral-200 px-6">
+                        <div className="max-w-5xl mx-auto flex justify-between items-center text-[#131110]">
+                            <div className="text-xl font-black italic tracking-tighter">mono</div>
+                            <div className="text-neutral-400 font-mono text-[10px] tracking-[0.2em]">© 2026 ALL RIGHTS RESERVED.</div>
+                        </div>
+                    </footer>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+
+</html>
