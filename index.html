@@ -28,6 +28,10 @@
             --card-bg: rgba(255, 255, 255, 0.6);
         }
 
+        html {
+            overflow-x: hidden;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
             margin: 0;
@@ -352,9 +356,9 @@
                             <h1 className="text-5xl md:text-8xl font-black italic tracking-tighter leading-[0.8] mb-8 text-[#131110]">mono's Portfolio</h1>
                             <p className="text-base md:text-lg font-medium text-neutral-500">Transforming messy data into elegant systems.</p>
                         </motion.div>
-                        <div className="absolute inset-0 pointer-events-none opacity-[0.08]">
-                            <ScrollingText baseVelocity={-80} className="absolute top-[22%] text-[4rem] md:text-[6rem] font-black italic text-[#c29a5b]">DATA-CLEANING EXCEL VBA AUTOMATION</ScrollingText>
-                            <ScrollingText baseVelocity={60} className="absolute bottom-[22%] text-[4rem] md:text-[6rem] font-black italic text-[#c29a5b]">FRONTEND SCHOOL-ADMIN DX SOLUTIONS</ScrollingText>
+                        <div className="absolute inset-0 pointer-events-none opacity-[0.08] overflow-hidden">
+                            <ScrollingText baseVelocity={-80} className="absolute top-[22%] text-[2rem] md:text-[6rem] font-black italic text-[#c29a5b]">DATA-CLEANING EXCEL VBA AUTOMATION</ScrollingText>
+                            <ScrollingText baseVelocity={60} className="absolute bottom-[22%] text-[2rem] md:text-[6rem] font-black italic text-[#c29a5b]">FRONTEND SCHOOL-ADMIN DX SOLUTIONS</ScrollingText>
                         </div>
                     </section>
 
