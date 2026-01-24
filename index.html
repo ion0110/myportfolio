@@ -357,9 +357,12 @@
             const [isMenuOpen, setIsMenuOpen] = useState(false);
             const { scrollYProgress } = useScroll();
 
-            // URLパラメータで Contact セクションの表示/非表示を制御
-            // ?nocontact を付けると Contact セクションが非表示になる
-            const hideContact = new URLSearchParams(window.location.search).has('nocontact');
+            // URLパラメータで表示/非表示を制御
+            // ?nocontact → Contact セクション非表示
+            // ?noname → 名前(mono)を非表示
+            const urlParams = new URLSearchParams(window.location.search);
+            const hideContact = urlParams.has('nocontact');
+            const hideName = urlParams.has('noname');
 
             // パララックス変位 - Cross Valueスタイルの滑らかな追従効果
             const bgScale = useTransform(scrollYProgress, [0, 1], [1.15, 0.95]);
@@ -433,7 +436,7 @@
                                 initial={{ y: 40, opacity: 0 }}
                                 animate={{ y: 0, opacity: 1 }}
                                 transition={{ duration: 1, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                                className="text-5xl md:text-8xl font-black italic tracking-tighter leading-[0.8] mb-8 text-[#1E293B]">mono's Portfolio</motion.h1>
+                                className="text-5xl md:text-8xl font-black italic tracking-tighter leading-[0.8] mb-8 text-[#1E293B]">{hideName ? "hide's Portfolio" : "mono's Portfolio"}</motion.h1>
                             <motion.p
                                 initial={{ y: 20, opacity: 0 }}
                                 animate={{ y: 0, opacity: 1 }}
@@ -455,7 +458,7 @@
                                     <img src="イケおじ風.png" alt="Profile" className="w-full h-full object-cover"
                                         onError={(e) => { e.target.src = "images/mypic.png"; }} />
                                 </div>
-                                <h3 className="text-3xl font-black italic tracking-tighter text-[#131110] mb-4">mono</h3>
+                                <h3 className="text-3xl font-black italic tracking-tighter text-[#131110] mb-4">{hideName ? 'hide' : 'mono'}</h3>
                                 <a href="https://note.com/_ion" target="_blank" rel="noopener noreferrer"
                                     className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#546E7A]/10 hover:bg-[#546E7A] text-[#546E7A] hover:text-white rounded-full transition-all duration-300 font-bold text-sm">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20" /><path d="M8 11h8" /><path d="M8 7h6" /></svg>
@@ -570,7 +573,7 @@
 
                     <footer className="py-20 border-t border-[#546E7A]/20 px-6 bg-gradient-to-t from-[#546E7A]/5 to-transparent">
                         <div className="max-w-5xl mx-auto flex justify-between items-center text-[#1E293B]">
-                            <div className="text-xl font-black italic tracking-tighter">mono</div>
+                            <div className="text-xl font-black italic tracking-tighter">{hideName ? 'hide' : 'mono'}</div>
                             <div className="text-neutral-400 font-mono text-[10px] tracking-[0.2em]">© 2026 ALL RIGHTS RESERVED.</div>
                         </div>
                     </footer>
