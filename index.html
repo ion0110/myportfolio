@@ -357,6 +357,10 @@
             const [isMenuOpen, setIsMenuOpen] = useState(false);
             const { scrollYProgress } = useScroll();
 
+            // URLパラメータで Contact セクションの表示/非表示を制御
+            // ?nocontact を付けると Contact セクションが非表示になる
+            const hideContact = new URLSearchParams(window.location.search).has('nocontact');
+
             // パララックス変位 - Cross Valueスタイルの滑らかな追従効果
             const bgScale = useTransform(scrollYProgress, [0, 1], [1.15, 0.95]);
             const bgY = useTransform(scrollYProgress, [0, 1], ["0%", "25%"]);
@@ -402,7 +406,7 @@
                         {isMenuOpen && (
                             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                                 className="fixed inset-0 z-40 bg-white/98 backdrop-blur-2xl flex flex-col items-center justify-center text-[#1E293B]">
-                                {['Top', 'About', 'Skills', 'Works', 'Contact'].map((item, i) => (
+                                {['Top', 'About', 'Skills', 'Works', ...(!hideContact ? ['Contact'] : [])].map((item, i) => (
                                     <motion.button
                                         key={item}
                                         onClick={() => scrollTo(item.toLowerCase())}
@@ -550,17 +554,19 @@
                         </div>
                     </section>
 
-                    {/* コンタクトセクション - グラデーション背景 */}
-                    <section id="contact" className="relative py-48 px-6 z-10 text-left overflow-hidden">
-                        {/* グラデーション背景 */}
-                        <div className="absolute inset-0 z-0 bg-gradient-to-br from-[#546E7A]/5 via-transparent to-[#546E7A]/10" />
-                        <div className="max-w-5xl mx-auto relative z-10">
-                            <SectionTitle subtitle="Inquiry">Contact Me</SectionTitle>
-                            <div className="mt-12">
-                                <ContactForm />
+                    {/* コンタクトセクション - グラデーション背景 (URLに ?nocontact がある場合は非表示) */}
+                    {!hideContact && (
+                        <section id="contact" className="relative py-48 px-6 z-10 text-left overflow-hidden">
+                            {/* グラデーション背景 */}
+                            <div className="absolute inset-0 z-0 bg-gradient-to-br from-[#546E7A]/5 via-transparent to-[#546E7A]/10" />
+                            <div className="max-w-5xl mx-auto relative z-10">
+                                <SectionTitle subtitle="Inquiry">Contact Me</SectionTitle>
+                                <div className="mt-12">
+                                    <ContactForm />
+                                </div>
                             </div>
-                        </div>
-                    </section>
+                        </section>
+                    )}
 
                     <footer className="py-20 border-t border-[#546E7A]/20 px-6 bg-gradient-to-t from-[#546E7A]/5 to-transparent">
                         <div className="max-w-5xl mx-auto flex justify-between items-center text-[#1E293B]">
