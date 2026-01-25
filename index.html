@@ -575,9 +575,15 @@
                         <div className="absolute inset-0 z-0 bg-gradient-to-br from-[#546E7A]/5 via-transparent to-[#546E7A]/10" />
                         <div className="max-w-5xl mx-auto relative z-10">
                             <SectionTitle subtitle="Inquiry">Contact Me</SectionTitle>
-                            <div className="mt-12">
+                            <motion.div
+                                initial={{ y: 50, opacity: 0 }}
+                                whileInView={{ y: 0, opacity: 1 }}
+                                transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                                viewport={{ once: true, margin: "-200px" }}
+                                className="mt-12"
+                            >
                                 <ContactForm />
-                            </div>
+                            </motion.div>
                         </div>
                     </section>
 
